@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Knee Rehab">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Bulletproof Knee Protocol - Rehabilitation workout app">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
+
+    <!-- Splash screens for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>Bulletproof Knee Protocol</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --warmup-color: #6b7280;
+            --strength-color: #eab308;
+            --accessories-color: #ef4444;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 18px;
+            padding-top: var(--safe-top);
+        }
+
+        /* Main Menu */
+        .main-menu {
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-bottom));
+            max-width: 600px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .main-menu h1 {
+            font-size: 26px;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #fbbf24;
+            padding-top: 10px;
+        }
+
+        .phase-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .phase-card:active {
+            transform: scale(0.98);
+        }
+
+        .phase-card h2 {
+            font-size: 22px;
+            color: #fbbf24;
+            margin-bottom: 6px;
+        }
+
+        .phase-card p {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .day-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .day-btn {
+            flex: 1;
+            padding: 14px 8px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background: #374151;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .day-btn:active {
+            background: #4b5563;
+        }
+
+        /* Exercise View */
+        .exercise-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .exercise-view.active {
+            display: flex;
+        }
+
+        .main-menu.hidden {
+            display: none;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            padding: 10px 14px;
+            padding-top: calc(10px + var(--safe-top));
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .top-bar.warmup { background: var(--warmup-color); }
+        .top-bar.strength { background: var(--strength-color); color: #000; }
+        .top-bar.accessories { background: var(--accessories-color); }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: inherit;
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-bar-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-bar-phase {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .top-bar-section {
+            font-size: 17px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .exercise-counter {
+            font-size: 15px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        /* Video Container */
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-fallback {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255,0,0,0.9);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* Exercise Info */
+        .exercise-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 14px;
+        }
+
+        .exercise-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #fbbf24;
+        }
+
+        .exercise-sets {
+            font-size: 22px;
+            color: #10b981;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .exercise-optional {
+            display: inline-block;
+            background: #6b7280;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        /* Notes Panel */
+        .notes-panel {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            min-height: 80px;
+        }
+
+        .notes-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .notes-content {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+            padding-bottom: var(--safe-bottom);
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .nav-btn.prev {
+            background: #374151;
+            color: white;
+        }
+
+        .nav-btn.next {
+            background: #10b981;
+            color: white;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar styling */
+        .notes-panel::-webkit-scrollbar,
+        .main-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notes-panel::-webkit-scrollbar-track,
+        .main-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notes-panel::-webkit-scrollbar-thumb,
+        .main-menu::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+
+        /* Prevent text selection during swipes */
+        .exercise-view {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Menu -->
+    <div class="main-menu" id="mainMenu">
+        <h1>BULLETPROOF KNEE PROTOCOL</h1>
+        <div id="phaseList"></div>
+    </div>
+
+    <!-- Exercise View -->
+    <div class="exercise-view" id="exerciseView">
+        <div class="top-bar" id="topBar">
+            <button class="back-btn" onclick="showMenu()" aria-label="Back to menu">&#8592;</button>
+            <div class="top-bar-info">
+                <div class="top-bar-phase" id="topBarPhase"></div>
+                <div class="top-bar-section" id="topBarSection"></div>
+            </div>
+            <div class="exercise-counter" id="exerciseCounter"></div>
+        </div>
+
+        <div class="video-container" id="videoContainer">
+            <iframe id="videoFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <a id="videoFallback" class="video-fallback" target="_blank" rel="noopener">Open Video</a>
+        </div>
+
+        <div class="exercise-info">
+            <div id="optionalBadge" class="exercise-optional" style="display:none;">OPTIONAL</div>
+            <div class="exercise-name" id="exerciseName"></div>
+            <div class="exercise-sets" id="exerciseSets"></div>
+
+            <div class="notes-panel">
+                <div class="notes-label">Form Notes</div>
+                <div class="notes-content" id="exerciseNotes"></div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" id="prevBtn" onclick="prevExercise()">&#8592; PREV</button>
+                <button class="nav-btn next" id="nextBtn" onclick="nextExercise()">NEXT &#8594;</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Program Data
+        const programData = {"phases":[{"phase":1,"name":"Foundation","duration":"3 weeks","days":[{"day":1,"title":"Base Load & Tibial Control","goal":"Introduce knee isometrics and build awareness of tibial rotation under load","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Pelvic tilts","youtube_url":"https://www.youtube.com/watch?v=4__in69CiM4","sets_reps":"1x 20","notes":"Inhale: Take a deep breath in. Exhale: As you exhale, gently flatten your lower back into the floor by tilting your pelvis backward. Imagine pulling your belly button toward your spine to engage your core. Your tailbone should lift slightly, but your hips and upper back should stay in contact with the floor. Inhale: Slowly release the tilt, allowing your pelvis to return to its neutral position with the natural curve of your lower back."},{"exercise":"Scissor slides","youtube_url":"https://www.youtube.com/watch?v=eQGrSRX91mg","sets_reps":"1x 20 e/s","notes":"Lie on your side, shoulder aligned with hip, hip with knees, knees with feet; feet flat against the wall. Tuck your pelvis and slightly round your back. Focus on the upper leg; squeeze the upper knee downward. Perform 20 reps sliding back and forth, keeping groin muscles engaged throughout. The motion rocks the pelvis side to side, mimicking directional changes in movement. Keep ribs stable and synchronize with breathing: inhale pulling back, exhale pushing forward."},{"exercise":"Seated Tibial Rotation","youtube_url":"https://youtu.be/obExfWd0xcg","sets_reps":"2x 20 e/s","notes":"Reps: Actively rotate the lower leg inward/outward while seated, foot off the ground. Cue: Focus on initiating from the tibia, not the foot. Control both directions."},{"exercise":"Pronation","youtube_url":"https://www.youtube.com/watch?v=U6lr34y8zH4","sets_reps":"2x 12 e/s","notes":"All we're going to do is move from a negative shin angle (where his knee is behind his ankle), to a slightly positive shin angle. You are just rocking your knee forward and back. You need to sense how the heel is staying heavy on the floor, heeling how the pressure in the heel changes. Perform this exercise slow and controlled. As you straighten your knee, rotate tibia externally and contract the quads, while keeping foot on the floor."},{"exercise":"Quadruped hip cars","youtube_url":"https://www.youtube.com/watch?v=WMasfCEPDIU","sets_reps":"1x 3 e/s","notes":"Step 1: Slowly lift one knee off the ground and bring it towards your chest (hip flexion). Step 2: Open the knee out to the side (hip abduction) while maintaining the bend in your leg. Step 3: Rotate your hip as you sweep your foot upward and backward, keeping your core stable. Step 4: Extend the hip fully behind you, then return the knee to the starting position. Reverse the Motion: Perform the same movement in reverse to complete one rep."}],"strength":[{"exercise":"Single-Leg wall sit - Yielding ISO","youtube_url":"https://youtube.com/shorts/9H7K1Ykr2fo","sets_reps":"2 sets of 30/45 sec each leg","notes":"Make sure you are not shifting your weight to non working leg. Adjust the knee position to a pain free angle. Make sure these 30-45 sec are close to failure, so if doing it bodyweight is too easy, add some dumbbells in each hand."},{"exercise":"Short Stance Split Squat","youtube_url":"https://youtu.be/sJJ77UXCxZE","sets_reps":"3-4 sets of 6 reps per leg","notes":"Cue: Listen to video for step by step guidance"},{"exercise":"Knee ISO push","youtube_url":"https://youtu.be/BT8HBzxK7dY","sets_reps":"3 sets of 10 sec each leg","notes":"Cue: Listen to video for step by step guidance"}],"accessories":[{"exercise":"Short-Lever Copenhagen Hold","youtube_url":"https://youtu.be/yUd3PHVjcuk","sets_reps":"2 sets of 5 breath cycles","notes":"Side plank with top leg bent and on bench; press into support to lift hips, hold for 5 slow breaths. Inhale through the nose, long exhales through mouth."},{"exercise":"Foot doming","youtube_url":"https://youtube.com/shorts/1605bJaEEcQ?feature=share","sets_reps":"1 set of 10 reps/side","notes":"Focus on activating the arch by drawing the base of the big toe toward the heel without curling the toes."},{"exercise":"Tibialis raises","youtube_url":"https://youtu.be/1b1eZxD5hpg","sets_reps":"2 sets of 12-15 reps","notes":"Lift your toes upward toward your shins while keeping heels on the ground. Squeeze the front of your shins (tibialis anterior) at the top of the movement. Slowly lower your toes back to the floor with control. Maintain straight knees and flat heels throughout."}]}},{"day":2,"title":"Deep Range + Hamstring Sync","goal":"Deepen anterior chain loading, and reinforce medial hamstring/tibia IR activation","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Toe yoga","youtube_url":"https://youtu.be/fAuOBDLleHE","sets_reps":"1x 10x e/s","notes":"Strengthens intrinsic foot control and arch awareness. 1 rep is lifting both separately, which means you will perform 20 movements in total per leg."},{"exercise":"Dynamic couch stretch","youtube_url":"https://youtu.be/4HEdlXWCYNQ","sets_reps":"1x 12 e/s","notes":"We all know the couch stretch. The only difference here is we are performing it dynamically. Grab your foot. If that's not possible, use a resistance band or towel to grab it. Rock forward & back holding your balance."},{"exercise":"Supine groin squeeze HIP IR","youtube_url":"https://youtu.be/Fk5jUYLPgdU","sets_reps":"1x 8 breath cycles","notes":"Go into a supine position. Place both feet in a 90 degree angle on a bench, chair or box. Place a yoga block, ball, book, ... in between your knees. Gently squeeze it (60-70%), and push feet out to go into IR. From here, gently push heels down into the bench, chair or box, and elevated glutes off the ground (not your whole lower back). In this position, perform your breath cycles. Inhale through the nose, long exhale through the mouth. 1 breath cycle = Inhale & exhale."},{"exercise":"Half kneeling lift off","youtube_url":"https://youtube.com/shorts/zmmgdrncANo?feature=share","sets_reps":"2 sets of 6 reps e/s","notes":"Start in a half kneeling position. Perform your lift offs, followed by a 1-2 sec ISO hold at end range."}],"strength":[{"exercise":"Hamstring Curl w/ Tibial IR Bias","youtube_url":"https://youtu.be/er8JnC-Dn5g","sets_reps":"2 sets of 10 reps + 10 sec ISO","notes":"Cue: Actively rotate feet inward slightly to bias medial hamstrings. Focus on controlled motion. 10 reps followed by 10 sec ISO hold."},{"exercise":"Slouch","youtube_url":"https://www.youtube.com/watch?v=6RBtrqM75AQ","sets_reps":"3 sets of 6 reps e/s","notes":"Start in a short split stance position, and put all of your bodyweight on the front leg. In order for us to know if this is done, take your back foot off the floor for a few seconds, and see if you lose your balance or not. Bend your knee, if you look down by now, you should see your knee over your toes. During the whole exercise, your front leg stays frozen in that position, the knee angle doesn't move! From there you are going to roll down, to come back up, drive your foot for 3 seconds as hard as you can into the floor, and use that same tension to drive yourself back up."},{"exercise":"SL kickstand RDL","youtube_url":"https://www.youtube.com/watch?v=DzUQkdUak_Q","sets_reps":"3 sets of 5 e/s","notes":"Stand on your right leg to ensure all your weight is here. Bend your knee. Prop opposite leg behind for balance but do not shift weight backwards to this leg. Right hand on right glute, left hand in the crease of the right hip (use this to guide movement). Rotate pelvis over the front leg very slightly. Hinge back slowly and pause in bottom position for 5s. Push hip back as far as possible without your foot pressure travelling backwards. Stand up with knee staying bent and foot pressure staying forward throughout."},{"exercise":"Single-Leg Hamstring Bridge ISO Hold","youtube_url":"https://youtu.be/7FLc4TUc8Ao","sets_reps":"2 sets of 30-45 sec each leg","notes":"Cue: Maintain level pelvis, forefoot on foam roller, avoid lumbar extension. If you are not used to these exercises, here is a beginner option to start with."}],"accessories":[{"exercise":"Single-Leg Calf Raise ISO Hold","youtube_url":"https://youtu.be/jvTTWliDw6A","sets_reps":"2 sets of 30-45 sec each leg","notes":"Cue: Perform near wall for balance. Keep knee slightly bent, hold at peak height. Start with no added weights (dumbbell), if it's too easy, and you are able to hold 45 sec each side, add dumbbells."},{"exercise":"Foot crunches","youtube_url":"https://youtube.com/shorts/C3YKzIchBd0?feature=share","sets_reps":"1x 20 reps e/s","notes":"Using your toes only, grip and scrunch the towel toward you. Focus on pulling with the arch of the foot, not lifting the heel."}]}},{"day":3,"title":"Pelvic Control & Core Link","goal":"Train hip-pelvis dissociation and reinforce lateral hip/core coupling in dynamic settings","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Ankle cars","youtube_url":"https://youtube.com/shorts/LfKhv-zQCT0","sets_reps":"1x 20x e/s","notes":"Start by pulling the foot up into full dorsiflexion (toes toward shin). Slowly rotate the ankle outward, down into plantarflexion (pointing toes), then rotate inward and back up. Make a full slow, smooth circle with the ankle, tracing the largest range possible. Perform 10 reps. Reverse the direction and repeat for another 10 reps."},{"exercise":"Knee cars","youtube_url":"https://youtu.be/tjE_wonEnxQ","sets_reps":"1x 10 e/s","notes":"Rotate your shin outward (ER) - think of turning your foot out without moving the thigh. Slowly extend the knee fully while maintaining the outward rotation. At the top, rotate the shin inward (IR), then flex the knee back to starting position. That's 1 rep, perform 10 in total each side."},{"exercise":"Supported hip airplane","youtube_url":"https://youtu.be/oS_xrZ-B5s8","sets_reps":"2x 5 e/s","notes":"From the hinged position, open your hips by rotating the pelvis and chest away from your stance leg. Pause briefly, then close your hips, rotating pelvis and chest towards stance leg. Keep your back leg straight and extended throughout. Rotation away and towards is 1 rep."},{"exercise":"90/90 transitions","youtube_url":"https://www.youtube.com/watch?v=T3j21SV2nD0","sets_reps":"2x 16","notes":"Slowly lift your knees, one at a time, and begin to rotate your hips. Transition your legs to the opposite 90/90 position by pivoting on your sit bones. Your front leg becomes the back leg, and your back leg becomes the front leg. When you start lifting up your back knee up, keep the front leg in contact with the ground, and once you reach your end range with the rear leg, that's when you start rotating with the front leg. Your goal is to keep as much space as you can in between both knees throughout the whole exercise."}],"strength":[{"exercise":"Hip flexor ISO","youtube_url":"https://youtu.be/9pcuKhrEOMA","sets_reps":"2 sets of 30-45 sec e/s","notes":"Hold position with controlled breathing."},{"exercise":"Standing hip lock w/wall","youtube_url":"https://youtu.be/veIUclSevec?si=fbQHcaIhz6_MLxyO","sets_reps":"2 sets of 10-12 reps/side","notes":"Stand next to a wall assisting you with 1 hand. Reach the closest leg to the wall, close to a 90 degree hip flexion position. From there reach as high as you can with the opposite arm."},{"exercise":"A march w/OH stick hold","youtube_url":"https://www.youtube.com/watch?v=QyAjKC2Qu9M","sets_reps":"2 sets of 6 reps/side","notes":"Stay long, reach long, stay stable, take your time, and progress speed of marches to increase the challenge."}],"accessories":[{"exercise":"Clamshell with wall press","youtube_url":"https://www.youtube.com/watch?v=OuE9NuobKRU","sets_reps":"2x10/side","notes":"Inhibits TFL, activates glute med under constraint. Take a rolled up towel, and place it underneath obliques. Try to keep your bottom oblique off that towel; by reaching upper glute away. Top leg on wall, keep big toe contact with the wall and start performing your clamshells. Focus on controlled movement, ensuring your pelvis remains stable and doesn't roll backward. Inhale as you prepare, exhale as you lift the knee."},{"exercise":"Side-lying hip abduction (toe down)","youtube_url":"https://www.youtube.com/watch?v=uL3Ye7Rrkak","sets_reps":"2 sets of 8x/side","notes":"Biases glute med with controlled eccentric load. 3-4 sec eccentric portion (lowering)."},{"exercise":"Dead bug with band pull","youtube_url":"https://www.youtube.com/watch?v=cJ3rCfpHoqk","sets_reps":"2 sets of 6 reps/side","notes":"Encourages core-pelvis control with upper/lower dissociation. Slow & controlled."}]}}]},{"phase":2,"name":"Building Control","duration":"3 weeks","days":[{"day":1,"title":"Midline Power + Eccentric Control","goal":"Build eccentric quad strength, improve tibial IR/ER awareness, and reinforce split-stance balance","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Pelvic tilts","youtube_url":"https://www.youtube.com/watch?v=4__in69CiM4","sets_reps":"1x 20","notes":"Inhale: Take a deep breath in. Exhale: As you exhale, gently flatten your lower back into the floor by tilting your pelvis backward."},{"exercise":"90/90 knee roll","youtube_url":"https://youtu.be/IKfLYGjaU_4","sets_reps":"2 sets of 20 reps/side","notes":"Feet on wall or bench, alternate lifting knees side to side while maintaining core tension and breathing rhythm."},{"exercise":"Resisted tibial IR","youtube_url":"https://youtube.com/shorts/QdX22nIbK80?feature=share","sets_reps":"2x 10 reps + 10 sec ISO hold","notes":"Reps: Actively rotate the lower leg inward while seated, foot off the ground. Once you get to your 10th rep, hold at end range for 10 sec."},{"exercise":"Resisted tibial ER","youtube_url":"https://youtube.com/shorts/oHR6gTbqig0?feature=share","sets_reps":"2x 10 reps + 10 sec ISO hold","notes":"Reps: Actively rotate the lower leg outward while seated, foot off the ground. Once you get to your 10th rep, hold at end range for 10 sec."}],"strength":[{"exercise":"Single-Leg Leg Extension ISO Hold","youtube_url":"https://youtu.be/rCyWvKUQpaU","sets_reps":"2 sets of 30-45 sec each leg","notes":"Cue: Avoid pain and ensure full quad engagement. Make sure to pick a weight, that ensures the 30 sec are close to failure (but still pain free)."},{"exercise":"Eccentric Leg Extensions (2 Up, 1 Down)","youtube_url":"https://youtu.be/qtpT3JxDkpw","sets_reps":"3 sets of 6-8 reps","notes":"Cue: Use both legs to lift the weight, then lower slowly (3-4 sec) with the surgical leg only. Prioritize control."},{"exercise":"Knee ISO push","youtube_url":"https://youtu.be/BT8HBzxK7dY","sets_reps":"3 ROUNDS - 3x 5 sec/side","notes":"Cue: Listen to video for cues."},{"exercise":"SS split squat","youtube_url":"https://youtu.be/sJJ77UXCxZE","sets_reps":"3 ROUNDS - 6-8 reps/side","notes":"Cue: Listen to video for cues."},{"exercise":"Supramaximal SL leg press eccentrics","youtube_url":"https://youtube.com/shorts/ojEpuLxgkm4","sets_reps":"3 sets of 6-8 reps e/s","notes":"We are going 2 up, 1 down. 3-4 sec eccentric portion. Since we are mainly focussing on the eccentric portion, don't be scared to load this heavier than usual."}],"accessories":[{"exercise":"Long Lever Copenhagen Plank ISO","youtube_url":"https://youtu.be/1vlWOQoKcIM","sets_reps":"2 sets of 20-30 sec each leg","notes":"Cue: Top leg supported at ankle on bench. Engage adductors and maintain neutral hips."},{"exercise":"Toes off around the clock","youtube_url":"https://youtu.be/YSyEwSb7Ius","sets_reps":"2 sets of 5 reps e/s","notes":"Place yourself on a platform, step, plate ... Toes hanging off the platform. There are a lot of cases, where people with knee injuries tend to toe grip the ground, which avoids them loading their arch. This exercise makes sure we avoid that. 1 rep is going around the clock."},{"exercise":"Hinged tibialis raises","youtube_url":"https://youtu.be/nNopj61xfNI","sets_reps":"3 sets of 20 reps","notes":"Start in a hinged position. From there perform your tibialis raises. This position will add a nice stretch to the calves/hamstrings, while strengthening the tibia."}]}},{"day":2,"title":"Posterior Chain + Tibial Rotation Sync","goal":"Strengthen hamstring loading patterns, activate glutes, and train lower limb alignment under slow tempo","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Toe yoga (progression)","youtube_url":"https://youtu.be/DoJH-02H5ms","sets_reps":"1x 10 e/s","notes":"We progress our toe lift off sequence. This time, lift off all toes, and put them down 1 by one. It will be frustrating at first, so take your time, and eventually you will restore this connection with the brain again."},{"exercise":"Wall-Assisted hip flexor stretch w/rotation","youtube_url":"https://youtube.com/shorts/_Zu87zAZKxo?feature=share","sets_reps":"2 sets of 10x e/s","notes":"1 foot on the wall for assistance."},{"exercise":"Figure 4 PAILS & RAILS","youtube_url":"https://www.youtube.com/watch?v=tx4gA-ZEmwo","sets_reps":"2 min passive + 20 sec PAILS + 10 sec RAILS","notes":"Begin on your back with a bench or chair for support. Position yourself in a figure 4 stretch. If the stretch feels mild, focus on tilting your tailbone back to deepen it. Hold this position for 2 minutes. For the PAILs contraction, press your foot into your knee for 20 seconds. Then, for the RAILs contraction, try lifting your foot off your knee and toward your face with maximum effort for 10 seconds."},{"exercise":"Figure 4 Passive range holds","youtube_url":"https://www.youtube.com/watch?v=orT2OTCyuWk","sets_reps":"8x 5 sec","notes":"Start on your back in the same figure 4 position. Pull yourself into your passive range of motion. Once there, remove any support and focus on actively holding that range for 5 seconds."},{"exercise":"Half kneeling hovers","youtube_url":"https://youtube.com/shorts/twiqNb9jJwA?feature=share","sets_reps":"2 sets of 6 reps e/s","notes":"We progress our lift off to hovers, grab an object with a height that challenges you enough. Going over & back is 1 rep."}],"strength":[{"exercise":"Hamstring Curl w/ Tibial IR Bias","youtube_url":"https://youtu.be/er8JnC-Dn5g","sets_reps":"2 sets of 10 reps + 10 sec ISO","notes":"Cue: Actively rotate feet inward slightly to bias medial hamstrings. Focus on controlled motion. 10 reps followed by 10 sec ISO hold."},{"exercise":"Hamstring ER leg curl","youtube_url":"https://youtu.be/hkCbDRcN_mo","sets_reps":"3 sets of 10-12 reps","notes":"Start on a seated leg curl machine. Dig your heels into the machine, and externally rotate the tibia. Make sure to hold this position throughout the exercise. Go into your leg curls. Make sure to control eccentric portion, 2-3 sec on the way back. 10-12 reps."},{"exercise":"Floating heel hinge","youtube_url":"https://youtu.be/2BO3E_IyNAA","sets_reps":"3 sets of 10 reps","notes":"Floating heel hinge: Take your heels off the floor, bend your knees a bit. Your knees should stay in this angle throughout the whole exercise. From here you are going to hinge your hips back, hold for 2-3 sec at end range, and push back forward. 10 reps."},{"exercise":"Foam roller bridge marches","youtube_url":"https://youtu.be/bGYv2tpYzIE","sets_reps":"2 sets of 20-30 sec","notes":"Cue: Maintain level pelvis, forefoot on foam roller, avoid lumbar extension."}],"accessories":[{"exercise":"Eccentric SL calf raises","youtube_url":"https://youtu.be/__2j0PoWWes","sets_reps":"2 sets of 10 reps each side","notes":"Start elevated on a platform. Go up using both legs. Down, 3-4 sec, on 1 leg. 10 reps each side. If bodyweight is too easy, add weights (this can be dumbbells, smith machine, ...)."},{"exercise":"3D ankle blaster","youtube_url":"https://www.youtube.com/watch?v=dE0tsek1CKY","sets_reps":"30 each position (60 total/leg)","notes":"Lay on side, toes pointing that direction, counterclock wise for 10, range of motion as big as possible, if that's not possible, you are using too much weight. 10 clock wise. Without resting, sit straight, 10 counterclock wise 10, clock wise 10. Sit on the other side, 10 counterclock wise, 10 clock wise. 60 total reps per leg."}]}},{"day":3,"title":"Frontal Plane Stability + Pelvic Control","goal":"Improve lateral hip and glute control, enhance frontal plane balance, and reinforce core-pelvis synergy","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Ankle cars","youtube_url":"https://youtube.com/shorts/LfKhv-zQCT0","sets_reps":"1x 20x e/s","notes":"Start by pulling the foot up into full dorsiflexion (toes toward shin). Slowly rotate the ankle outward, down into plantarflexion (pointing toes), then rotate inward and back up."},{"exercise":"Knee cars","youtube_url":"https://youtu.be/tjE_wonEnxQ","sets_reps":"1x 10 e/s","notes":"Rotate your shin outward (ER) - think of turning your foot out without moving the thigh."},{"exercise":"Cable resisted hip airplane","youtube_url":"https://youtube.com/shorts/2-fGh_0m7_I?feature=share","sets_reps":"2x 8-10 e/s","notes":"Same principles as in phase 1, but this time we add resistance."},{"exercise":"Arm bar","youtube_url":"https://youtu.be/hrRcBOP1Rds","sets_reps":"2x 10 e/s","notes":"Lay down. Leg is 90 degrees at the hip and knee. Arm is straight up. Fully extend other leg and arm. From that position, roll over to the opposite side and bring that knee and shin to the floor, but you have to make sure that the hip comes with the shoulder. They rotate at the same time. Also rotate with your hand. Non-working leg should stay straight on the ground. Key point, look at the weight you're holding at all time."}],"strength":[{"exercise":"Hip flexor Eccentric prone","youtube_url":"https://youtu.be/H5usRJmtAEk","sets_reps":"2 sets of 8x e/s","notes":"Same setup as phase 1, but we perform it with our foot on a bench/chair/box. Explode up, 3-4 sec eccentric portion."},{"exercise":"Hikes & drops in top position","youtube_url":"https://youtu.be/TKS3mRoaiYc","sets_reps":"2 sets - 3x e/s","notes":"Cue: Perform these back to back. This is not a squat, so you should barely feel it in the knee or quads, think about the movement you do when you do an RDL, pushing/reaching hips back."},{"exercise":"Slow down & slow up","youtube_url":"https://youtu.be/4bEAu60O0Vo","sets_reps":"2 sets - 3x e/s","notes":"Part of the superset with hikes & drops."},{"exercise":"Slow down & fast up","youtube_url":"https://youtu.be/c2mE6BmVTFQ","sets_reps":"2 sets - 3x e/s","notes":"Part of the superset with hikes & drops."},{"exercise":"A march w/rotation","youtube_url":"https://youtu.be/ZV6_EfoWy54","sets_reps":"2 sets of 6 reps/side","notes":"We progress our A march by adding rotation to mimick daily life demands."},{"exercise":"Penguin Marches","youtube_url":"https://youtu.be/ODx2rtMvP2M","sets_reps":"2 sets of 20x","notes":"Mini calf raise, alternate quick foot strikes, stay upright and springy."}],"accessories":[{"exercise":"Sidelying knee to knee","youtube_url":"https://youtu.be/JgcJBA65D3w","sets_reps":"2 sets of 10 reps/side","notes":"Feet flat on wall, pelvis tucked. Push top knee forward and lift it high to activate glute. Keep feet in contact with wall. As the lower knee taps up, engage the groin on that side. Controlled, rhythmic reps."},{"exercise":"Sidelying abduction lift off w/hip shift","youtube_url":"https://youtu.be/5MhQpz0aR_M","sets_reps":"2 sets of 12-15 reps each leg","notes":"Cue: Start in a sidelying position, with a bench or box next to you. From here, shift your hips away from your body, as far as you can, keep it there, and start performing your lift offs. Make sure, you don't lose that hip shift while performing your lift offs."},{"exercise":"Cable hip flexion","youtube_url":"https://youtu.be/JaPnGlvyx4c","sets_reps":"2 sets of 10-12 reps/side","notes":"Drive knee explosively forward, maintaining upright trunk. Focus on end-range hip flexor engagement."}]}}]},{"phase":3,"name":"Strength Development","duration":"3 weeks","days":[{"day":1,"title":"Quad Dominance & Split Power","goal":"Build terminal range quad capacity, improve SL leg strength across ranges, and reintroduce explosive split-based movements","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Pelvic tilts","youtube_url":"https://www.youtube.com/watch?v=4__in69CiM4","sets_reps":"1x 20","notes":"Inhale: Take a deep breath in. Exhale: As you exhale, gently flatten your lower back into the floor by tilting your pelvis backward."},{"exercise":"Scissor slides w/IR","youtube_url":"https://youtu.be/lN_eJCg2IS4","sets_reps":"2 sets of 20 reps e/s","notes":"Same as the regular scissor slides we've done before, but we add internal rotation to the exercise."},{"exercise":"Scissor slides w/ER","youtube_url":"https://youtu.be/RQqqpVKCuis","sets_reps":"2 sets of 20 reps e/s","notes":"Same as the regular scissor slides we've done before, but we add external rotation to the exercise."},{"exercise":"Prone tibial IR","youtube_url":"https://youtu.be/jLCtUR_5lmM","sets_reps":"2 sets of 10 reps/side","notes":"Starting Position: Begin in a prone position, rotate tibia internally. Execution: rock back to bring your working leg into flexion. Focus: in the bottom position, push shin into the floor to go back up."},{"exercise":"Inversion to eversion step","youtube_url":"https://youtu.be/IcPS7oONYjo","sets_reps":"2 sets of 6 reps/side","notes":"This is an active mobility drill for the ankle & foot, our goal here is to try and get the shin as much outside and inside as we can."}],"strength":[{"exercise":"Single-Leg extension superset","youtube_url":"https://youtu.be/0MaQY6d89_g","sets_reps":"2 sets (Mid ISO 20s, Partials 8-10, Bottom ISO 20s, Full reps to failure)","notes":"Don't underestimate this superset, start with low weights first, and increase if too easy."},{"exercise":"Split jumps","youtube_url":"https://youtube.com/shorts/l7Q_fTlrkLU","sets_reps":"2 sets of 16 reps (8 each side)","notes":"Focus on soft landings and explosive take-offs."},{"exercise":"SL leg press","youtube_url":"https://youtu.be/L4W_5p1NnxQ","sets_reps":"2 warmup + 3 working sets of 6 reps e/s","notes":"We progress our leg press to up and down using 1 leg. You will have 2 warm up sets to prep for your 3 working sets. Make sure you keep track of the weights you use, and work close to failure on the 6 reps each side."}],"accessories":[{"exercise":"GHD copenhagen plank ISO","youtube_url":"https://youtube.com/shorts/Yegxb0GvJt0","sets_reps":"2 sets of 30-45 sec each side","notes":"We progress our copenhagen plank into deeper ROM."},{"exercise":"SL stance w/forefoot smash","youtube_url":"https://youtu.be/ntmE-V7UaGM","sets_reps":"2 sets of 1 min","notes":"Stand on one leg with knee slightly bent. Heel 1 inch off the floor. Smash toes into the floor while maintaining balance."},{"exercise":"Eversion to inversion lift offs","youtube_url":"https://youtu.be/JpW9p0bTIHM","sets_reps":"2 sets of 20 reps","notes":"While leaning against the wall, pull the toes up. The further you are from the wall, the harder the exercise. From there you are going to try to get to the outside of the heel, and touch down. Pull everything back up and try to get to the inside of your heel. Each movement is 1 rep."}]}},{"day":2,"title":"Posterior Chain Reload & Elastic Bounce","goal":"Reinforce glute-hamstring coordination, reintroduce rhythmic bounce through double-leg pogos","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Toe abduction","youtube_url":"https://youtu.be/LN8pVA1GC24","sets_reps":"1x 15 each side","notes":"Start in a seated position. For this exercise you will need a mini band or resistance band. Lift off all toes, abduct big toe, place down. Lift off, control on the way back and repeat."},{"exercise":"RFE split squat pulses","youtube_url":"https://youtube.com/shorts/ebcnvoYw2u0?feature=share","sets_reps":"2 sets of 20 pulses each side","notes":"For this exercise, go into your RFE split squat position. But take a bigger step forward. The focus during this exercise will be on the back leg, on the bench. Try to keep it close to being fully straight. You will feel a nice stretch in hip flexors/rec fem."},{"exercise":"Weighted passive HIP ER stretch","youtube_url":"https://youtu.be/fwoU7kY1LKU","sets_reps":"1 set of 60-90 sec each side","notes":"If you feel some discomfort in the knee, while being in this position, simply elevate the knee on the box by placing a towel underneath or a yoga block."},{"exercise":"Knee flexion passive range holds","youtube_url":"https://youtube.com/shorts/KwNBhbn-Ib4?feature=share","sets_reps":"2 sets each side","notes":"Using a towel or resistance band, pull your knee into full ROM. Hold for 15 sec. After the 15 sec, slowly take away the assistance, and your goal here is to maintain the same (or close) angle/position for another 10 sec."}],"strength":[{"exercise":"Foam roller bridge oscillations","youtube_url":"https://youtu.be/4LgOYmAuqLY","sets_reps":"2 sets of 20 sec each side","notes":"We progress our foam roller bridge ISO, to oscillations. This means you will perform small pulses forward and back for 20 sec each side."},{"exercise":"Double leg pogos","youtube_url":"https://youtu.be/cp7VhA1rIl4","sets_reps":"2x 20","notes":"This is a superset. Perform the double leg pogos in place, rest for 30 sec, and go into the double leg pogos each direction."},{"exercise":"Double leg pogos each direction","youtube_url":"https://youtu.be/jk0zmr9QJPk","sets_reps":"3x 10 each direction","notes":"You will perform 10 reps of each variation (direction)."},{"exercise":"Soleus slouch","youtube_url":"https://youtu.be/6RBtrqM75AQ","sets_reps":"2 sets of 6 reps","notes":"Start in a short split stance position, and put all of your bodyweight on the front leg."},{"exercise":"Bent to straight knee calf raises","youtube_url":"https://youtu.be/bV4HFMlYZe8","sets_reps":"2 sets of 8 e/s","notes":"Start 3-4 feet in front of a wall. Hands placed on the wall for support. Start in a triple extension position (sprinter's position)."},{"exercise":"Hinge squat hinge","youtube_url":"https://youtu.be/BfPETg819g4","sets_reps":"2 sets of 6 reps","notes":"Feet placed hip width apart. Bend both knees. Heels 1-2 inches off the floor. Hinge forward without changing shin angle. hinge, squat, hinge = 1 rep."},{"exercise":"Hamstring leg curl (2 up, 1 down)","youtube_url":"https://youtu.be/2ePX6F__cGI","sets_reps":"3 sets of 6 reps each side","notes":"Curl using 2 legs. Perform the eccentric portion only using 1 leg. 3-4 sec eccentric portion. 6 reps each side, so 12 reps in total per set."}],"accessories":[{"exercise":"SL deficit calf raises","youtube_url":"https://youtu.be/PQD_ehsP75Q","sets_reps":"2 sets of 10-12 reps each side","notes":"Make sure these 10-12 reps are close to failure, so if BW is too easy, add weights (dumbbells, smith machine, ...)."}]}},{"day":3,"title":"Rotational Core & Hip Reflex Stability","goal":"Fuse pelvic control with dynamic hip rotation under load","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Resisted ankle dorsiflexion","youtube_url":"https://youtube.com/shorts/sdXhgNSV8To","sets_reps":"1x 12-15 e/s","notes":"Start in a seated position. For this exercise you will need a resistance band. Lift off, don't let the band pull you. 12-15 reps each side."},{"exercise":"Loaded knee cars","youtube_url":"https://youtu.be/fm6yahgYGk8","sets_reps":"1x 12-15 e/s","notes":"We progress our knee cars, to loaded knee cars."},{"exercise":"IR / ER kickstand hip hinge","youtube_url":"https://youtube.com/shorts/i5JaTX9dI1k?feature=share","sets_reps":"2 sets of 8 reps each side","notes":"Watch the video on how to attach the resistance band. Start by performing your kickstand hinge. Going up, go into hip flexion. Rotate pelvis away from stance leg. Return and repeat."}],"strength":[{"exercise":"Long range hip flexors, abs, quads","youtube_url":"https://youtube.com/shorts/M_d4nC94hjI","sets_reps":"2 sets of 10-12 / side","notes":"Grab a weight that's heavy enough. Place foot under that weight. Sit down on bench or box. 2-3 sec eccentric. Push foot into weight to go back up. Repeat."},{"exercise":"Hip lock sequence","youtube_url":"https://youtube.com/shorts/xNGGwOZHuDE","sets_reps":"2 sets of 6/side","notes":"Start elevated on side of plate or box. Shift hips. Bring knee towards chest. OH reach. Reverse and go into a short split squat. Repeat."},{"exercise":"Loaded A switch w/OH press","youtube_url":"https://www.youtube.com/watch?v=rDs-9zYMB5c","sets_reps":"2 sets of 8 reps/side","notes":"Switch and press overhead. Weight doesn't have to be a lot, just focus on intensity and reaching long."},{"exercise":"OH SL snatch","youtube_url":"https://www.youtube.com/watch?v=QWmHUq15dWw","sets_reps":"2 sets of 8 reps/side","notes":"Start bodyweight on the first set and if it's too easy, add a plate hinge down step through on the box. Reach long overhead. The step finish in this movement is to encourage hip lock."}],"accessories":[{"exercise":"Adduction PAILS / RAILS","youtube_url":"https://www.youtube.com/watch?v=cNC9fvFc_88","sets_reps":"2 min passive + PAILS/RAILS + active reps","notes":"Lie on your side and cross one leg over the other. Use the non-working leg to assist in moving the working leg into deeper external rotation. For the passive range holds, take away the support, and try to maintain the same range actively for 5 sec."},{"exercise":"Side plank hip abduction","youtube_url":"https://youtu.be/skcyresaFyw","sets_reps":"2 sets of 10-12 e/s","notes":"Start in a side plank position. Dig foot into the floor to go up. Control the movement for 10-12 reps. If this causes pain in the knee, a regression from this is doing it bent knee."}]}}]},{"phase":4,"name":"Power & Return to Sport","duration":"3 weeks","days":[{"day":1,"title":"Strength Into Speed","goal":"Build the base for concentric explosiveness and elastic readiness","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Pelvic tilts","youtube_url":"https://www.youtube.com/watch?v=4__in69CiM4","sets_reps":"1x 20","notes":"Inhale: Take a deep breath in. Exhale: As you exhale, gently flatten your lower back into the floor by tilting your pelvis backward."},{"exercise":"Standing hip shifts","youtube_url":"https://youtu.be/eyVsrhD4EHM","sets_reps":"2 sets of 12 reps e/s","notes":"We progress our hip shifts to a standing variation. For this you will need a small ball. The main leg doing the shifting is the back leg."},{"exercise":"Tibial rotation w/overcoming ISO","youtube_url":"https://youtu.be/byrsr8_j3aY","sets_reps":"1 set of 10 reps each position","notes":"3 different positions (knee angles): Dig your heel for 70% into the bench, while holding this contraction, perform 10 tibial rotations. 3 positions in total."}],"strength":[{"exercise":"SL leg extension","youtube_url":"https://youtu.be/DPcbv1M3eBo","sets_reps":"2 warmup + 3 working sets of 6 reps e/s","notes":"We progress our leg extensions. Make sure you are working close to failure on each side during the working sets, and track the weight you're using."},{"exercise":"Split Stance Supramaximal Eccentric Trap Bar Deadlift","youtube_url":"https://youtube.com/shorts/o31TVEXC3GE?feature=share","sets_reps":"3 sets - 4/side","notes":"Rest: 20 sec then move to A2. Notes: Lift with both legs, lower on single leg over 4-5 sec."},{"exercise":"ISO Lunge Oscillatory","youtube_url":"https://youtube.com/shorts/fR_vqNTu86s?feature=share","sets_reps":"3 sets - 10 micro-reps/side","notes":"Rest: 20 sec then move to A3. Notes: Small, fast pulses; maintain knee over ankle."},{"exercise":"DB Split Jumps","youtube_url":"https://youtube.com/shorts/UdPvzBXOm_E?feature=share","sets_reps":"3 sets - 6/side","notes":"Rest: 2-3 min after completing all three. Notes: Soft landings; focus on vertical force and symmetrical take-off."},{"exercise":"Assisted reverse nordics","youtube_url":"https://youtu.be/1-Awp8Z1Hu4","sets_reps":"2 sets of 6x","notes":"Time to challenge your tissues & joint through deeper ROM. Use the band for assistance, and once you get more confident and comfortable in these positions, start using less the band."},{"exercise":"Couch stretch","youtube_url":"https://youtu.be/b4E1xWJ9-p0","sets_reps":"2 sets of 1 min e/s","notes":"Part of superset with assisted reverse nordics."}],"accessories":[{"exercise":"GHD copenhagen","youtube_url":"https://youtu.be/KM5gYoYkwUE","sets_reps":"2 sets of 10-12 reps e/s","notes":"We progress our GHD copenhagen from isometric to isotonics. Control the movement on the way down."},{"exercise":"Heel off around the clock","youtube_url":"https://youtu.be/0DOycNQO2Og","sets_reps":"2 sets of 4 reps e/s","notes":"We progress our floating heel SL stance, to a more dynamic version of it. 1 rep is going around the clock, 4 reps each leg."},{"exercise":"Eversion to inversion lift offs","youtube_url":"https://youtu.be/JpW9p0bTIHM","sets_reps":"2 sets of 20 reps","notes":"While leaning against the wall, pull the toes up. The further you are from the wall, the harder the exercise."}]}},{"day":2,"title":"Yield & React","goal":"Train force absorption and elastic rebound","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"5th toe abduction","youtube_url":"https://youtu.be/R5JFKRVpGf8","sets_reps":"1x 12-15 e/s","notes":"Same as last phase, but this time we focus on 5th toe."},{"exercise":"Walking lunge w/rotational reach","youtube_url":"https://youtube.com/shorts/GB8MRtTOxk4?feature=share","sets_reps":"1 set of 6 reps e/s","notes":"Perform a walking lunge, but we add some rotation to it, to get a nice stretch in the hip flexors/rec fem as well."},{"exercise":"Knee flexion end range lift offs","youtube_url":"https://youtube.com/shorts/-wqT9NNrAfs","sets_reps":"2 sets of 3 reps e/s","notes":"We progress our knee flexion lift offs. This time, put yourself already close to end range, and we are going to perform our lift offs from there. Lift off & hold for 4-6 sec, rest for 5 sec, and repeat 2x more time."}],"strength":[{"exercise":"Hamstring bridge w/ankle pump","youtube_url":"https://youtube.com/shorts/YtDRajcnBIA","sets_reps":"2 sets of 20-30 sec e/s","notes":"We progress our hamstring bridge from the oscillations from last phase, to ankle pumps this phase."},{"exercise":"Single leg pogos","youtube_url":"https://youtu.be/pvj2MJwn29I","sets_reps":"2 sets of 10 e/s","notes":"We progress our standing double leg pogos to single leg pogos."},{"exercise":"Double leg pogos each direction","youtube_url":"https://youtu.be/jk0zmr9QJPk","sets_reps":"2 sets of 10 each direction","notes":"Part of superset with single leg pogos."},{"exercise":"Seated Single-Leg Curl","youtube_url":"https://youtu.be/3K9Ew2hWYbQ","sets_reps":"3 sets of 6-8 reps per leg","notes":"Load: Adjust to allow quality form - surgical side will likely use ~50-60% of non-surgical. Note: Track progress - aim for surgical side to close the gap to >=80% of non-surgical. Keep doing it on the seated machine."},{"exercise":"Landmine glute bridge","youtube_url":"https://youtu.be/Z2WfHk5NAys","sets_reps":"3 sets of 6-8 reps per leg","notes":"Cue: Barbell anchored to landmine, loaded across working side hip; drive through heel, pause at top with hips level."}],"accessories":[{"exercise":"Deep squat calf raises","youtube_url":"https://youtube.com/shorts/HdqdKtpRsbk","sets_reps":"1 set of 1 min (AMRAP)","notes":"You are going to perform 1 set of 1 min, where you will have to perform as many reps as possible. Don't shift your bodyweight back."}]}},{"day":3,"title":"Rotational Control & Dynamic Footwork","goal":"Develop hip-trunk-foot coordination under speed and multi-planar stress","sections":{"warmup":[{"exercise":"Fascia Release","youtube_url":"https://youtu.be/VEJ61hFYwNI","sets_reps":"30s/1 min area","notes":"Reduces surface tension and prepares tissues for loading","optional":true},{"exercise":"Ankle hovers","youtube_url":"https://youtube.com/shorts/cWnmZrcuQMU","sets_reps":"1x 6 e/s","notes":"Start in a half kneeling position. Shift weight on top of working leg, and determine in what end range angle you can work in. Grab a small obstacle. Hover over and back, that's 1 rep."},{"exercise":"Tibial IR rock","youtube_url":"https://youtu.be/298RhvSa9gU","sets_reps":"2 sets of 12 reps e/s","notes":"Start in a seated position. From there, internally rotate the tibia of working leg. Place opposite foot, on top of working leg, and push it into external rotation. Avoid this from happening with the working leg. While holding that contraction, rock back & forth for 12 reps."}],"strength":[{"exercise":"Long range hip flexors, abs, quads w/rotation","youtube_url":"https://youtube.com/shorts/M_d4nC94hjI","sets_reps":"2 sets of 6 reps/side","notes":"Grab a DB that's heavy enough to hold your weight and place foot underneath. Grab opposite knee towards chest. We progress by adding some rotation to it."},{"exercise":"BB step up","youtube_url":"https://youtu.be/aS_eP9WrTXs","sets_reps":"2 sets of 6 e/s","notes":"For this exercise, you will need a barbell and a plate or step in front of you. Agressively step on the plate/step, followed by a knee drive. Hold at the top for 1-2 sec and repeat."},{"exercise":"Deficit switch w/OH press","youtube_url":"https://youtube.com/shorts/8p-ZwOgQdDY?feature=share","sets_reps":"2 sets of 5 reps e/s","notes":"Similar to phase 3, but this time we start elevated."},{"exercise":"Diagonal step up","youtube_url":"https://www.youtube.com/watch?v=7GP_CVljBgo","sets_reps":"2 sets of 8 reps/side","notes":"The step finish in this movement is to encourage hip lock, where the free hip is raised and slightly forward and the pelvis rotated slightly anteriorly."}],"accessories":[{"exercise":"Skater bound w/rhythm","youtube_url":"https://youtu.be/L857MM56igw","sets_reps":"2 sets of 6 reps/side","notes":"Time to challenge our lateral hops, start with small distances between hops, and the more confident you get, the more you can challenge yourself with distance and intensity."},{"exercise":"Side plank abduction deficit","youtube_url":"https://youtu.be/yLn_t1d9d2g","sets_reps":"2 sets of 10-12 e/s","notes":"Similar to phase 3, but we progress by adding elevation and extra ROM."}]}}]}]};
+
+        // State
+        let currentPhase = 0;
+        let currentDay = 0;
+        let currentExerciseIndex = 0;
+        let allExercises = [];
+        let currentVideoUrl = '';
+
+        // Initialize
+        function init() {
+            renderPhaseList();
+        }
+
+        function renderPhaseList() {
+            const container = document.getElementById('phaseList');
+            container.innerHTML = programData.phases.map((phase, idx) => `
+                <div class="phase-card">
+                    <h2>Phase ${phase.phase}: ${phase.name}</h2>
+                    <p>${phase.duration}</p>
+                    <div class="day-buttons">
+                        ${phase.days.map((day, dayIdx) => `
+                            <button class="day-btn" onclick="startWorkout(${idx}, ${dayIdx})">
+                                Day ${day.day}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startWorkout(phaseIdx, dayIdx) {
+            currentPhase = phaseIdx;
+            currentDay = dayIdx;
+            currentExerciseIndex = 0;
+
+            const day = programData.phases[phaseIdx].days[dayIdx];
+            allExercises = [];
+
+            ['warmup', 'strength', 'accessories'].forEach(section => {
+                if (day.sections[section]) {
+                    day.sections[section].forEach(ex => {
+                        allExercises.push({ ...ex, section: section });
+                    });
+                }
+            });
+
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('exerciseView').classList.add('active');
+            renderExercise();
+        }
+
+        function showMenu() {
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('exerciseView').classList.remove('active');
+            document.getElementById('videoFrame').src = '';
+        }
+
+        function renderExercise() {
+            const ex = allExercises[currentExerciseIndex];
+            const phase = programData.phases[currentPhase];
+            const day = phase.days[currentDay];
+
+            const topBar = document.getElementById('topBar');
+            topBar.className = 'top-bar ' + ex.section;
+
+            const sectionNames = {
+                'warmup': 'Mobility / Prep',
+                'strength': 'Strength',
+                'accessories': 'Accessories'
+            };
+
+            document.getElementById('topBarPhase').textContent = `Phase ${phase.phase} - Day ${day.day}`;
+            document.getElementById('topBarSection').textContent = sectionNames[ex.section];
+            document.getElementById('exerciseCounter').textContent = `${currentExerciseIndex + 1}/${allExercises.length}`;
+
+            // Video
+            currentVideoUrl = ex.youtube_url;
+            const embedUrl = getEmbedUrl(ex.youtube_url);
+            document.getElementById('videoFrame').src = embedUrl;
+            document.getElementById('videoFallback').href = ex.youtube_url;
+
+            // Exercise info
+            document.getElementById('optionalBadge').style.display = ex.optional ? 'inline-block' : 'none';
+            document.getElementById('exerciseName').textContent = ex.exercise;
+            document.getElementById('exerciseSets').textContent = ex.sets_reps;
+            document.getElementById('exerciseNotes').textContent = ex.notes || 'Watch video for guidance.';
+
+            // Nav buttons
+            document.getElementById('prevBtn').disabled = currentExerciseIndex === 0;
+
+            if (currentExerciseIndex === allExercises.length - 1) {
+                document.getElementById('nextBtn').textContent = 'DONE';
+                document.getElementById('nextBtn').disabled = false;
+            } else {
+                document.getElementById('nextBtn').innerHTML = 'NEXT &#8594;';
+                document.getElementById('nextBtn').disabled = false;
+            }
+        }
+
+        function getEmbedUrl(url) {
+            let videoId = '';
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/shorts/')) {
+                videoId = url.split('shorts/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch')) {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                videoId = urlParams.get('v');
+            }
+            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1`;
+        }
+
+        function prevExercise() {
+            if (currentExerciseIndex > 0) {
+                currentExerciseIndex--;
+                renderExercise();
+            }
+        }
+
+        function nextExercise() {
+            if (currentExerciseIndex < allExercises.length - 1) {
+                currentExerciseIndex++;
+                renderExercise();
+            } else {
+                showMenu();
+            }
+        }
+
+        // Swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            if (document.getElementById('exerciseView').classList.contains('active')) {
+                if (diff > swipeThreshold) nextExercise();
+                else if (diff < -swipeThreshold) prevExercise();
+            }
+        }
+
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
